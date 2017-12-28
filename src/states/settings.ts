@@ -1,18 +1,14 @@
 import * as Phaser from 'phaser-ce';
 
-export default class Title extends Phaser.State {
+export default class Settings extends Phaser.State {
 
     private cursors: Phaser.CursorKeys;
     private menuItemYTitleOffest = 100;
     private menuItemYOffset = 30;
     private stateMenu = [
         {
-            display: "Play",
-            state: "game"
-        },
-        {
-            display: "Settings",
-            state: "settings"
+            display: "Back",
+            state: "title"
         }
     ];
 
@@ -40,7 +36,7 @@ export default class Title extends Phaser.State {
 
     private setupAndStartTitle() {
         var style = { font: "60px Arial", fill: "#ffffff", align: "center" };
-        var text = this.game.add.text(this.game.width, this.game.world.centerY-100, "Football", style);
+        var text = this.game.add.text(this.game.width, this.game.world.centerY-100, "Settings", style);
         text.anchor.set(0.5);
         this.game.add.tween(text).to({ x: this.game.world.centerX }, 2000, Phaser.Easing.Cubic.Out, true);
     }
