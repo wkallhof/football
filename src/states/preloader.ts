@@ -1,21 +1,20 @@
 import * as Assets from '../assets';
 
 export default class Preloader extends Phaser.State {
-    private preloadBarSprite: Phaser.Sprite = null;
-    private preloadFrameSprite: Phaser.Sprite = null;
 
     public preload(): void {
         // display loading bar or text
-        Assets.Loader.loadAllAssets(this.game);
-        this.startGame();
-    }
+        var style = { font: "35px Arial", fill: "#ffffff", align: "center" };
+        var text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Loading", style);
+        text.anchor.set(0.5);
 
-    private startGame(): void {
+        Assets.Loader.loadAllAssets(this.game);
+
         this.game.camera.onFadeComplete.addOnce(this.loadGame, this);
         this.game.camera.fade(0x000000, 1000);
     }
-
+    
     private loadGame(): void {
-        this.game.state.start('game');
+        this.game.state.start('title');
     }
 }
