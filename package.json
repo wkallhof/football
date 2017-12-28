@@ -1,13 +1,11 @@
 {
-  "name": "phaser-npm-webpack-typescript-starter-project",
-  "productName": "phaser-npm-webpack-typescript-starter-project",
-  "version": "1.8.4",
+  "name": "football",
+  "version": "0.0.1",
   "scripts": {
     "build": "webpack --config webpack.config.js --progress --colors",
     "server": "webpack-dev-server --config webpack.config.js --open"
   },
   "devDependencies": {
-    "@types/node": "8.5.1",
     "clean-webpack-plugin": "0.1.17",
     "copy-webpack-plugin": "4.3.0",
     "expose-loader": "0.7.4",
@@ -16,7 +14,6 @@
     "phaser-ce": "2.9.3",
     "ts-loader": "3.2.0",
     "typescript": "2.6.2",
-    "uglifyjs-webpack-plugin": "1.1.4",
     "webpack": "3.10.0",
     "webpack-dev-server": "2.9.7"
   }
