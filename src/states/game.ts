@@ -24,22 +24,22 @@ export default class Game extends Phaser.State {
         this.game.physics.p2.restitution = 0.8;
 
         this.playerGroup = this.game.add.group(); 
-        this.player = this.addPlayer(20, 20);
+        this.player = this.addPlayer(643, 1820);
         this.targetPlayer = false;
 
         this.computerPlayers = new Array<any>();
         this.computerPlayers.push({
             player: this.addPlayer(383, 541),
-            dest: new Phaser.Point(329, 334)
+            dest: new Phaser.Point(192, 334)
         }, {
             player: this.addPlayer(336, 561),
-            dest: new Phaser.Point(359, 334)    
+            dest: new Phaser.Point(422, 334)    
         }, {
             player: this.addPlayer(465, 508),
-            dest: new Phaser.Point(389, 334)    
+            dest: new Phaser.Point(752, 334)    
         },{
             player: this.addPlayer(530, 508),
-            dest: new Phaser.Point(419, 334)    
+            dest: new Phaser.Point(1099, 334)    
         });
 
         //this.player.body.fixedRotation = true;
@@ -64,14 +64,13 @@ export default class Game extends Phaser.State {
         const velocity1 = new Phaser.Point(equation[0].bodyB.velocity[0], equation[0].bodyB.velocity[1]);
         const velocity2 = new Phaser.Point(equation[0].bodyA.velocity[0], equation[0].bodyA.velocity[1]);
         let force = Phaser.Point.distance(velocity1, velocity2) / 2000;
-
-        console.log(force);
-
+        
         this.game.camera.shake(force, 200);
     }
 
     onTap(pointer, doubleTap) {
-        console.log(`${pointer.x},${pointer.y}`);
+        console.log(pointer);
+        console.log(`${pointer.x + this.game.camera.x},${pointer.y + this.game.camera.y}`);
     }
 
     manageComputerInput(computer) {

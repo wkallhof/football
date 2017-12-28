@@ -1,4 +1,4 @@
-/* AUTO GENERATED FILE. DO NOT MODIFY. YOU WILL LOSE YOUR CHANGES ON BUILD. */
+import * as Phaser from "phaser-ce";
 
 export namespace Images {
     export class ImagesField {
@@ -8,90 +8,21 @@ export namespace Images {
     }
 }
 
-export namespace Spritesheets {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace Atlases {
-    export class AtlasesPreloadSpritesArray {
-        static getName(): string { return 'preload_sprites_array'; }
-
-        static getJSONArray(): string { return require('assets/atlases/preload_sprites_array.json'); }
-
-        static getPNG(): string { return require('assets/atlases/preload_sprites_array.png'); }
+export class Loader {
+    
+    static loadAllAssets(game: Phaser.Game) {
+        this.loadImages(game);
     }
-    export namespace AtlasesPreloadSpritesArray {
-        export enum Frames {
-            PreloadBar = 'preload_bar.png',
-            PreloadFrame = 'preload_frame.png',
+
+    static loadImages(game: Phaser.Game) {
+        for (let image in Images) {
+            if (!game.cache.checkImageKey(Images[image].getName())) {
+                for (let option of Object.getOwnPropertyNames(Images[image])) {
+                    if (option !== 'getName' && option.includes('get')) {
+                        game.load.image(Images[image].getName(), Images[image][option]());
+                    }
+                }
+            }
         }
     }
-    export class AtlasesPreloadSpritesHash {
-        static getName(): string { return 'preload_sprites_hash'; }
-
-        static getJSONHash(): string { return require('assets/atlases/preload_sprites_hash.json'); }
-
-        static getPNG(): string { return require('assets/atlases/preload_sprites_hash.png'); }
-    }
-    export namespace AtlasesPreloadSpritesHash {
-        export enum Frames {
-            PreloadBar = 'preload_bar.png',
-            PreloadFrame = 'preload_frame.png',
-        }
-    }
-    export class AtlasesPreloadSpritesXml {
-        static getName(): string { return 'preload_sprites_xml'; }
-
-        static getPNG(): string { return require('assets/atlases/preload_sprites_xml.png'); }
-
-        static getXML(): string { return require('assets/atlases/preload_sprites_xml.xml'); }
-    }
-    export namespace AtlasesPreloadSpritesXml {
-        export enum Frames {
-            PreloadBar = 'preload_bar.png',
-            PreloadFrame = 'preload_frame.png',
-        }
-    }
-}
-
-export namespace Audio {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace Audiosprites {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace GoogleWebFonts {
-    export const Barrio: string = 'Barrio';
-}
-
-export namespace CustomWebFonts {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace BitmapFonts {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace JSON {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace XML {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace Text {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-
-export namespace Scripts {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-export namespace Shaders {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
-}
-export namespace Misc {
-    class IExistSoTypeScriptWillNotComplainAboutAnEmptyNamespace {}
 }

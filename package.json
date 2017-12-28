@@ -3,14 +3,9 @@
   "productName": "phaser-npm-webpack-typescript-starter-project",
   "version": "1.8.4",
   "scripts": {
-    "webpack:dev": "webpack --config webpack.config.js --progress --colors",
-    "build:dev": "npm run webpack:dev",
-    "server:dev": "webpack-dev-server --config webpack.config.js --open",
-    "setupGameSize": "node ./scripts/setupGameSize.js",
-    "assets:dev": "node ./scripts/generateAssetsClass.js --dev",
-    "assets": "node ./scripts/generateAssetsClass.js",
-    "postinstall": "npm run setupGameSize",
-    "checkDepsVersions": "npm-check --skip-unused -u"
+    "webpack": "webpack --config webpack.config.js --progress --colors",
+    "build": "npm run webpack:dev",
+    "server": "webpack-dev-server --config webpack.config.js --open"
   },
   "devDependencies": {
     "@types/node": "8.5.1",
@@ -24,14 +19,12 @@
     "npm-check": "5.5.2",
     "phaser-ce": "2.9.3",
     "pngjs-image": "0.11.7",
-    "shelljs": "0.7.8",
     "ts-loader": "3.2.0",
     "typescript": "2.6.2",
     "uglifyjs-webpack-plugin": "1.1.4",
     "webfontloader": "1.6.28",
     "webpack": "3.10.0",
     "webpack-dev-server": "2.9.7",
-    "webpack-synchronizable-shell-plugin": "0.0.6",
     "xml2js": "0.4.19"
   }
 }
