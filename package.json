@@ -6,6 +6,7 @@
     "server": "webpack-dev-server --config webpack.config.js --open"
   },
   "devDependencies": {
+    "@types/node": "^8.5.2",
     "clean-webpack-plugin": "0.1.17",
     "copy-webpack-plugin": "4.3.0",
     "expose-loader": "0.7.4",

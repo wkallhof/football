@@ -2,10 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "sourceMap": true,
-    "types": [
-      "node"
-    ]
+    "sourceMap": true
   },
   "files": [
     "./src/globals.d.ts",
