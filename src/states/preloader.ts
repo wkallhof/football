@@ -1,4 +1,5 @@
 import * as Assets from '../assets';
+import { States, StateManager } from "../utilities/stateManager";
 
 export default class Preloader extends Phaser.State {
 
@@ -15,6 +16,6 @@ export default class Preloader extends Phaser.State {
     }
     
     private loadGame(): void {
-        this.game.state.start('title');
+        StateManager.start(States.TITLE, this.game);
     }
 }

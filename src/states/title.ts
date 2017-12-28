@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser-ce';
+import { States, StateManager } from "../utilities/stateManager";
 
 export default class Title extends Phaser.State {
 
@@ -8,11 +9,11 @@ export default class Title extends Phaser.State {
     private stateMenu = [
         {
             display: "Play",
-            state: "game"
+            state: States.GAME
         },
         {
             display: "Settings",
-            state: "settings"
+            state: States.SETTINGS
         }
     ];
 
@@ -58,7 +59,7 @@ export default class Title extends Phaser.State {
 
         if (enterKey.justDown) {
             let menuItem = this.stateMenu[this.currentMenuIndex];
-            this.game.state.start(menuItem.state);
+            StateManager.start(menuItem.state, this.game);
         }
 
         if (this.cursors.up.justDown)

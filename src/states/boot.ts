@@ -1,6 +1,8 @@
 import * as Assets from '../assets';
+import { States, StateManager } from "../utilities/stateManager";
 
 export default class Boot extends Phaser.State {
+
     public preload(): void {
         // Load any assets you need for your preloader state here.
     }
@@ -23,6 +25,6 @@ export default class Boot extends Phaser.State {
             `DEBUG....................... ${DEBUG}`
         );
 
-        this.game.state.start('preloader');
+        StateManager.start(States.PRELOADER, this.game);
     }
 }
