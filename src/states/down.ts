@@ -176,10 +176,10 @@ export default class Down extends Phaser.State {
         }
 
         if (jukeLeft.justDown) {
-            this.player.sprite.body.thrustLeft(10000);
+            this.player.sprite.body.thrustLeft(5000);
         }
         if (jukeRight.justDown) {
-            this.player.sprite.body.thrustRight(10000);
+            this.player.sprite.body.thrustRight(5000);
         }
 
         if (this.cursors.left.isDown) {
@@ -193,7 +193,7 @@ export default class Down extends Phaser.State {
         }
     
         if (this.cursors.up.isDown) {
-            this.player.sprite.body.thrust(400 * modifier);
+            this.player.sprite.body.thrust(300 * modifier);
         }
         else if (this.cursors.down.isDown) {
             this.player.sprite.body.reverse(200);

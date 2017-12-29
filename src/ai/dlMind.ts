@@ -13,8 +13,9 @@ export default class DlMind extends DumbMind {
         }
         else {
             super.think(request);
-            //this.rotateTowardsPoint(thisPlayer.sprite, target.sprite.position);
-            thisPlayer.sprite.body.rotation = Phaser.Math.degToRad(180);
+            if (this.finishedRoute(request.player, request.matchState)) {
+                thisPlayer.sprite.body.rotation = Phaser.Math.degToRad(180);
+            }
         }
     }
 }
