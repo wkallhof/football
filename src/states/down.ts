@@ -109,24 +109,17 @@ export default class Down extends Phaser.State {
     }
 
     update(): void{
-
         this.managePlayerInput();
-        this.manageComputerInput();
+        this.executeThought(this.offensePlayers);
+        this.executeThought(this.defensePlayers);
     }
 
-    manageComputerInput() {
-        let ballPosition = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition)
-        this.executeThought(this.offensePlayers, ballPosition);
-        this.executeThought(this.defensePlayers, ballPosition);
-    }
-
-    executeThought(players: Array<RenderPlayer>, ballCoords: Phaser.Point) {
+    executeThought(players: Array<RenderPlayer>) {
         for (let i = 0; i < players.length; i++){
             let player = players[i];
             player.info.mind.think(new ThoughtRequest(player, this.matchState, this.beforeSnap));
         }
     }
-
 
     onPlayerHit(body : Phaser.Physics.P2.Body, bodyB, shapeA, shapeB, equation) {
         if (body == null || equation[0] == null) return;
