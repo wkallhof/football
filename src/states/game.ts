@@ -35,23 +35,64 @@ export default class Game extends Phaser.State {
 
     createDemoOffensePlay() {
         let play = new Play();
+
+        //center
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, 30)]));
+
+        //left OL
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-30, 30), new Phaser.Point(-30, 40)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, 30), new Phaser.Point(-60, 60)]));
+
+        //right OL
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point( 30, 30), new Phaser.Point(30, 40)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(60, 30), new Phaser.Point(60, 60)]));
+        
+        //TE
+        play.addPlayRoute(new PlayRoute(PlayerPosition.TE, [new Phaser.Point(100, 30), new Phaser.Point(100, -100)]))
+
+        //QB
         play.addPlayRoute(new PlayRoute(PlayerPosition.QB,
             [new Phaser.Point(0, 60),
             new Phaser.Point(0,120)]
         ));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, 30)]));
+
+        //RB ->
+        play.addPlayRoute(new PlayRoute(PlayerPosition.RB, [
+            new Phaser.Point(20, 100),
+            new Phaser.Point(130, 100),
+            new Phaser.Point(150, -220)
+        ]));
+
+        //<-
+        play.addPlayRoute(new PlayRoute(PlayerPosition.RB, [
+            new Phaser.Point(0, 130),
+            new Phaser.Point(-100, 90),
+            new Phaser.Point(-100, -100)
+        ]));
+
+        //WR - L
         play.addPlayRoute(new PlayRoute(PlayerPosition.WR, [
-            new Phaser.Point(-200, 30),
-            new Phaser.Point(-200, -100),
+            new Phaser.Point(-250, 30),
+            new Phaser.Point(-250, -100),
             new Phaser.Point(400, -200)
         ]));
+
+        //WR - R
+        play.addPlayRoute(new PlayRoute(PlayerPosition.WR, [
+            new Phaser.Point(250, 30),
+            new Phaser.Point(250, -70),
+            new Phaser.Point(-400, -200)
+        ]));
+
         return play;
     }
 
     createDemoDefensePlay() {
         let play = new Play();
-        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(0, -30)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(-30, -30), new Phaser.Point(0, 120)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, -30), new Phaser.Point(0, 120)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(30, -30), new Phaser.Point(0, 120)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(60, -30), new Phaser.Point(0, 120)]));
         return play;
     }
 

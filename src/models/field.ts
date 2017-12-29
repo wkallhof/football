@@ -14,6 +14,6 @@ export default class Field{
     }
 
     public translateYardsToCoords(yards: number) : Phaser.Point {
-        return new Phaser.Point(621, 1045);
+        return new Phaser.Point(640, 1045);
     }
 }
