@@ -15,43 +15,50 @@ import { Play, PlayRoute } from '../models/play';
 export default class Game extends Phaser.State {
 
     create(): void {
-        let demoTeam1 = this.createDemoTeam("Team 1", "0066ff");
-        let demoTeam2 = this.createDemoTeam("Team 2", "999966");
+        let demoTeam1 = this.createDemoTeam("Team 1", 0x0066ff);
+        let demoTeam2 = this.createDemoTeam("Team 2", 0x999966);
         let demoField = new Field();
 
         let matchState = new MatchState();
-        matchState.homeTeam = demoTeam1;
-        matchState.awayTeam = demoTeam2;
+        matchState.offenseTeam = demoTeam1;
+        matchState.defenseTeam = demoTeam2;
         matchState.currentDown = 1;
         matchState.field = demoField;
         matchState.fieldPosition = 20;
-        matchState.homeTeamBall = true;
         matchState.quarter = 1;
         matchState.quarterTime = 60;
-        matchState.homePlay = this.createDemoOffensePlay();
-        matchState.awayPlay = this.createDemoDefensePlay();
+        matchState.offensePlay = this.createDemoOffensePlay();
+        matchState.defensePlay = this.createDemoDefensePlay();
 
         StateManager.start(States.DOWN, this.game, matchState);
     }
 
     createDemoOffensePlay() {
         let play = new Play();
-        play.addPlayRoute(new PlayRoute(PlayerPosition.QB, [new Phaser.Point(0, -30)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, -2)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.QB,
+            [new Phaser.Point(0, 60),
+            new Phaser.Point(0,120)]
+        ));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, 30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.WR, [
+            new Phaser.Point(-200, 30),
+            new Phaser.Point(-200, -100),
+            new Phaser.Point(400, -200)
+        ]));
         return play;
     }
 
     createDemoDefensePlay() {
         let play = new Play();
-        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(0, 2)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-30, 2)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(0, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, -30)]));
         return play;
     }
 
     /*
     * Creates a Demo team for development
     */
-    createDemoTeam(name: string, color: string): Team {
+    createDemoTeam(name: string, color: number): Team {
         let team = new Team(name, color);
 
         this.createDemoPlayers(2, 4, "QB", PlayerPosition.QB, team);

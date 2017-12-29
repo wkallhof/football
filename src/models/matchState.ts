@@ -3,16 +3,19 @@ import Field from "./field";
 import { Play } from "./play";
 
 export default class MatchState{
-    public homeTeam: Team;
-    public awayTeam: Team;
+    public defenseTeam: Team;
+    public offenseTeam: Team;
     public field: Field;
     public currentDown: number;
     public quarter: number;
     public quarterTime: number;
-    public homeTeamBall: boolean;
     public fieldPosition: number;
     public homeTeamScore: number;
     public awayTeamScore: number;
-    public homePlay: Play;
-    public awayPlay: Play;
+    public defensePlay: Play;
+    public offensePlay: Play;
+
+    public turnover() {
+        
+    }
 }
