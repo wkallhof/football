@@ -13,7 +13,7 @@ import { PlayerPosition } from '../models/playerPosition';
 export default class Down extends Phaser.State {
 
     private cameraUtil: CameraUtil;
-    private player: Phaser.Sprite;
+    private player: RenderPlayer;
 
     private cursors: Phaser.CursorKeys;
     private playerGroup: Phaser.Group;
@@ -40,12 +40,12 @@ export default class Down extends Phaser.State {
         this.playState.playerWithBall = _.find(this.offensePlayers, (player: RenderPlayer) => {
             return player.info.position == PlayerPosition.QB;
         });
-        console.log(this.playState.playerWithBall);
 
         var coords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
 
         this.playerGroup = this.game.add.group();
-        this.player = this.getPlayerSprite(coords.x - 300, coords.y, 0x00000);
+        this.player = this.playState.playerWithBall;
+        this.player.isUser = true;
 
         this.drawYardLine(this.matchState);
 
@@ -54,8 +54,8 @@ export default class Down extends Phaser.State {
 
         this.cursors = this.game.input.keyboard.createCursorKeys();
         this.game.input.onTap.add(this.onTap, this);
-        this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-        this.player.body.onBeginContact.add(this.onPlayerHit, this);
+        this.game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+        this.player.sprite.body.onBeginContact.add(this.onPlayerHit, this);
     }
 
     private setupWorld() {
@@ -130,6 +130,7 @@ export default class Down extends Phaser.State {
     executeThought(players: Array<RenderPlayer>) {
         for (let i = 0; i < players.length; i++) {
             let player = players[i];
+            if (player.isUser) continue;
             player.info.mind.think(new ThoughtRequest(player, this.matchState, this.playState));
         }
     }
@@ -149,6 +150,12 @@ export default class Down extends Phaser.State {
         console.log(`${pointer.x + this.game.camera.x},${pointer.y + this.game.camera.y}`);
     }
 
+    resetDown() {
+        console.log("Reset!");
+        this.playState.isBeforeSnap = true;
+        this.cameraUtil.zoom(1);
+    }
+
     managePlayerInput() {
         const shiftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
         const jukeLeft = this.game.input.keyboard.addKey(Phaser.Keyboard.A);
@@ -159,9 +166,7 @@ export default class Down extends Phaser.State {
         
         if (space.justDown) {
             if (!this.playState.isBeforeSnap) {
-                console.log("Reset!");
-                this.playState.isBeforeSnap = true;
-                this.cameraUtil.zoom(1);
+                this.resetDown();
             }
             else {
                 this.cameraUtil.zoom(0.75);
@@ -171,27 +176,27 @@ export default class Down extends Phaser.State {
         }
 
         if (jukeLeft.justDown) {
-            this.player.body.thrustLeft(10000);
+            this.player.sprite.body.thrustLeft(10000);
         }
         if (jukeRight.justDown) {
-            this.player.body.thrustRight(10000);
+            this.player.sprite.body.thrustRight(10000);
         }
 
         if (this.cursors.left.isDown) {
-            this.player.body.rotateLeft(50 * modifier);
+            this.player.sprite.body.rotateLeft(50 * modifier);
         }
         else if (this.cursors.right.isDown) {
-            this.player.body.rotateRight(50 * modifier);
+            this.player.sprite.body.rotateRight(50 * modifier);
         }
         else {
-            this.player.body.setZeroRotation();
+            this.player.sprite.body.setZeroRotation();
         }
     
         if (this.cursors.up.isDown) {
-            this.player.body.thrust(400 * modifier);
+            this.player.sprite.body.thrust(400 * modifier);
         }
         else if (this.cursors.down.isDown) {
-            this.player.body.reverse(200);
+            this.player.sprite.body.reverse(200);
         }
     }
 

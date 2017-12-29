@@ -23,6 +23,7 @@ export class RenderPlayer{
     public route: Array<Phaser.Point>;
     public color: number;
     public routeIndex: number;
+    public isUser: boolean;
 
     constructor(info: Player, route: Array<Phaser.Point>, color: number) {
         this.info = info;
