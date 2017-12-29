@@ -1,4 +1,4 @@
-import { Team } from "./Team";
+import Team from "./Team";
 
 class Match{
     public HomeTeam: Team;

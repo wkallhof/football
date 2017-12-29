@@ -1,15 +1,15 @@
 import * as Phaser from "phaser-ce";
-import { PlayerPosition } from "./PlayerPosition";
+import { PlayerPosition } from "./playerPosition";
 
-export class Player{
+export default class Player{
     public name: string;
     public number: number;
     public body: Phaser.Physics.P2.Body;
     public position: PlayerPosition;
 
-    constructor(body: Phaser.Physics.P2.Body, name: string, number: number) {
+    constructor(name: string, number: number, position: PlayerPosition) {
         this.name = name;
         this.number = number;
-        this.body = body;
+        this.position = position;
     }
 }

@@ -1,12 +1,11 @@
-import * as Phaser from "phaser-ce";
-import { Player } from "./Player";
+import Player from "./player";
 
-export class Team{
+export default class Team{
     public name: string;
     public players: Array<Player>;
-    public color: Phaser.Color;
+    public color: string;
 
-    constructor(name: string, color: Phaser.Color) {
+    constructor(name: string, color: string) {
         this.players = new Array<Player>();
         this.color = color;
         this.name = name;

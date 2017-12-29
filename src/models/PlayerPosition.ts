@@ -1,4 +1,10 @@
 export enum PlayerPosition {
-    Quarterback,
-    Runningback
+    QB,
+    RB,
+    WR,
+    TE,
+    OL,
+    DL,
+    LB,
+    DB
 }

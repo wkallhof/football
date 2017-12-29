@@ -1,157 +1,78 @@
 import * as Assets from '../assets';
 import { CameraUtil } from "../utilities/CameraUtil";
+import Team from "../models/Team";
+import Player from "../models/Player";
+import { PlayerPosition } from "../models/PlayerPosition";
+import Field from "../models/field";
+import MatchState from "../models/matchState";
+import { createDecipher } from 'crypto';
+import { States, StateManager } from "../utilities/stateManager";
+import { Play, PlayRoute } from '../models/play';
 
+/*
+* Creates a Demo down for development
+*/
 export default class Game extends Phaser.State {
 
-    private cameraUtil: CameraUtil;
-    private player: Phaser.Sprite;
-    private computerPlayers: Array<any>;
-
-    private cursors: Phaser.CursorKeys;
-    private playerGroup: Phaser.Group;
-    private targetPlayer: boolean;
-    private backgroundTemplateSprite: Phaser.Sprite = null;
-
     create(): void {
-        this.cameraUtil = new CameraUtil(this.game);
+        let demoTeam1 = this.createDemoTeam("Team 1", "0066ff");
+        let demoTeam2 = this.createDemoTeam("Team 2", "999966");
+        let demoField = new Field();
 
-        this.game.add.sprite(0,0, Assets.Images.ImagesField.getName());
-        this.game.world.setBounds(0,0,1260, 2500);
-        //	Enable p2 physics
-	    this.game.physics.startSystem(Phaser.Physics.P2JS);
-    
-        //  Make things a bit more bouncey
-        this.game.physics.p2.restitution = 0.8;
+        let matchState = new MatchState();
+        matchState.homeTeam = demoTeam1;
+        matchState.awayTeam = demoTeam2;
+        matchState.currentDown = 1;
+        matchState.field = demoField;
+        matchState.fieldPosition = 20;
+        matchState.homeTeamBall = true;
+        matchState.quarter = 1;
+        matchState.quarterTime = 60;
+        matchState.homePlay = this.createDemoOffensePlay();
+        matchState.awayPlay = this.createDemoDefensePlay();
 
-        this.playerGroup = this.game.add.group(); 
-        this.player = this.addPlayer(643, 1820);
-        this.targetPlayer = false;
-
-        this.computerPlayers = new Array<any>();
-        this.computerPlayers.push({
-            player: this.addPlayer(383, 541),
-            dest: new Phaser.Point(192, 334)
-        }, {
-            player: this.addPlayer(336, 561),
-            dest: new Phaser.Point(422, 334)    
-        }, {
-            player: this.addPlayer(465, 508),
-            dest: new Phaser.Point(752, 334)    
-        },{
-            player: this.addPlayer(530, 508),
-            dest: new Phaser.Point(1099, 334)    
-        });
-
-        //this.player.body.fixedRotation = true;
-
-        this.cursors = this.game.input.keyboard.createCursorKeys();
-        this.game.input.onTap.add(this.onTap, this);
-        this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
-        this.player.body.onBeginContact.add(this.onPlayerHit, this);
+        StateManager.start(States.DOWN, this.game, matchState);
     }
 
-    update(): void{
-
-        this.managePlayerInput();
-        this.computerPlayers.forEach((value) => {
-            this.manageComputerInput(value);
-        });
+    createDemoOffensePlay() {
+        let play = new Play();
+        play.addPlayRoute(new PlayRoute(PlayerPosition.QB, [new Phaser.Point(0, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, -2)]));
+        return play;
     }
 
-    onPlayerHit(body : Phaser.Physics.P2.Body, bodyB, shapeA, shapeB, equation) {
-        if (body == null || equation[0] == null) return;
-
-        const velocity1 = new Phaser.Point(equation[0].bodyB.velocity[0], equation[0].bodyB.velocity[1]);
-        const velocity2 = new Phaser.Point(equation[0].bodyA.velocity[0], equation[0].bodyA.velocity[1]);
-        let force = Phaser.Point.distance(velocity1, velocity2) / 2000;
-        
-        this.game.camera.shake(force, 200);
+    createDemoDefensePlay() {
+        let play = new Play();
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(0, 2)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-30, 2)]));
+        return play;
     }
 
-    onTap(pointer, doubleTap) {
-        console.log(pointer);
-        console.log(`${pointer.x + this.game.camera.x},${pointer.y + this.game.camera.y}`);
+    /*
+    * Creates a Demo team for development
+    */
+    createDemoTeam(name: string, color: string): Team {
+        let team = new Team(name, color);
+
+        this.createDemoPlayers(2, 4, "QB", PlayerPosition.QB, team);
+        this.createDemoPlayers(4, 20, "RB", PlayerPosition.RB, team);
+        this.createDemoPlayers(6, 30, "WR", PlayerPosition.WR, team);
+        this.createDemoPlayers(3, 40, "TE", PlayerPosition.TE, team);
+        this.createDemoPlayers(9, 10, "OL", PlayerPosition.OL, team);
+        this.createDemoPlayers(9, 20, "DL", PlayerPosition.DL, team);
+        this.createDemoPlayers(7, 30, "LB", PlayerPosition.LB, team);
+        this.createDemoPlayers(10, 40, "DB", PlayerPosition.DB, team);
+
+        return team;
     }
 
-    manageComputerInput(computer) {
-        
-        this.accelerateToPoint(computer.player, this.targetPlayer? this.player : computer.dest, 400);
-    }
-
-    accelerateToPoint(object, point: Phaser.Point, speed: number) {
-        if (Math.abs(object.body.x - point.x) < 3 && Math.abs(object.body.y - point.y) < 3) {
-            object.body.rotation = 0;
-            return;
+    /*
+    * Creates a Demo player for development
+    */
+    createDemoPlayers(players: number, jerseyStart: number, nameStart: string, position: PlayerPosition, team: Team) {
+        for (let i = 0; i < players; i++){
+            let player = new Player(`${nameStart} ${i+1}`, i + jerseyStart, position);
+            team.addPlayer(player);
         }
-        const angle = this.rotateTowardsPoint(object, point);
-        object.body.force.x = Math.cos(angle) * speed;    // accelerateToObject 
-        object.body.force.y = Math.sin(angle) * speed;
-    }
-
-    rotateTowardsPoint(object, point: Phaser.Point): number {
-        
-        const angle = Math.atan2(point.y - object.y, point.x -object.x);
-        object.body.rotation = angle + Phaser.Math.degToRad(90);
-        return angle;
-    }
-
-    managePlayerInput() {
-        const shiftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
-        const jukeLeft = this.game.input.keyboard.addKey(Phaser.Keyboard.A);
-        const jukeRight = this.game.input.keyboard.addKey(Phaser.Keyboard.D);
-        const space = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-
-        const modifier = shiftKey.isDown ? 2 : 1;
-        
-        if (space.justDown) {
-            this.targetPlayer = !this.targetPlayer;
-            this.cameraUtil.zoom(this.targetPlayer ? 0.75 : 1);
-        }
-
-        if (jukeLeft.justDown) {
-            this.player.body.thrustLeft(10000);
-        }
-        if (jukeRight.justDown) {
-            this.player.body.thrustRight(10000);
-        }
-
-        if (this.cursors.left.isDown)
-        {
-            this.player.body.rotateLeft(50 * modifier);
-        }
-        else if (this.cursors.right.isDown)
-        {
-            this.player.body.rotateRight(50 * modifier);
-        }
-        else
-        {
-            this.player.body.setZeroRotation();
-        }
-    
-        if (this.cursors.up.isDown)
-        {
-            this.player.body.thrust(400 * modifier);
-        }
-        else if (this.cursors.down.isDown)
-        {
-            this.player.body.reverse(200);
-        }
-    }
-
-    addPlayer(x: number, y: number) : Phaser.Sprite {
-        const graphics = this.game.make.graphics(); // adds to the world stage
-        graphics.beginFill(0x000000);
-        graphics.lineStyle(2, 0xFFFFFF, 1);
-        graphics.moveTo(15, 0);
-        graphics.lineTo(15, 5);
-        graphics.drawRect(5, 5, 20, 20);
-        graphics.endFill();
-        var player = this.game.add.sprite(x, y, graphics.generateTexture());
-        this.playerGroup.add(player);
-        this.game.physics.p2.enable(player);
-
-        //  Modify a few body properties
-        player.body.damping = 0.8;
-        return player;
     }
 }
