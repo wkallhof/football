@@ -2,10 +2,11 @@ import * as Assets from '../assets';
 import { CameraUtil } from "../utilities/CameraUtil";
 import MatchState from "../models/matchState";
 import * as _ from "lodash";
-import Player from '../models/player';
+import { Player, RenderPlayer } from '../models/player';
 import { PlayRoute, Play } from '../models/play';
 import Team from "../models/Team";
 import Field from '../models/field';
+import { ThoughtRequest } from '../ai/mind';
 
 export default class Down extends Phaser.State {
 
@@ -115,27 +116,14 @@ export default class Down extends Phaser.State {
 
     manageComputerInput() {
         let ballPosition = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition)
-        this.runRoute(this.offensePlayers, ballPosition);
-        this.runRoute(this.defensePlayers, ballPosition);
+        this.executeThought(this.offensePlayers, ballPosition);
+        this.executeThought(this.defensePlayers, ballPosition);
     }
 
-    runRoute(players: Array<RenderPlayer>, ballCoords: Phaser.Point) {
+    executeThought(players: Array<RenderPlayer>, ballCoords: Phaser.Point) {
         for (let i = 0; i < players.length; i++){
             let player = players[i];
-            player.routeIndex = this.beforeSnap ? 0 : player.routeIndex;
-            let routeTarget = player.route[player.routeIndex];
-            let target = new Phaser.Point(routeTarget.x + ballCoords.x, routeTarget.y + ballCoords.y);
-
-            // if the player is close to target, it is before the snap, and they still have moves to make, increment
-            if (Math.abs(player.sprite.x - target.x) < 3
-                && Math.abs(player.sprite.y - target.y) < 3
-                && !this.beforeSnap
-                && player.routeIndex != player.route.length - 1) {
-                    player.routeIndex++;
-            }
-            else {
-                this.accelerateToPoint(player.sprite, target, 300);
-            }
+            player.info.mind.think(new ThoughtRequest(player, this.matchState, this.beforeSnap));
         }
     }
 
@@ -153,23 +141,6 @@ export default class Down extends Phaser.State {
     onTap(pointer, doubleTap) {
         console.log(pointer);
         console.log(`${pointer.x + this.game.camera.x},${pointer.y + this.game.camera.y}`);
-    }
-
-    accelerateToPoint(object, point: Phaser.Point, speed: number) {
-        if (Math.abs(object.body.x - point.x) < 3 && Math.abs(object.body.y - point.y) < 3) {
-            object.body.rotation = 0;
-            return;
-        }
-        const angle = this.rotateTowardsPoint(object, point);
-        object.body.force.x = Math.cos(angle) * speed;    // accelerateToObject 
-        object.body.force.y = Math.sin(angle) * speed;
-    }
-
-    rotateTowardsPoint(object, point: Phaser.Point): number {
-        
-        const angle = Math.atan2(point.y - object.y, point.x -object.x);
-        object.body.rotation = angle + Phaser.Math.degToRad(90);
-        return angle;
     }
 
     managePlayerInput() {
@@ -238,20 +209,5 @@ export default class Down extends Phaser.State {
         //  Modify a few body properties
         player.body.damping = 0.8;
         return player;
-    }
-}
-
-class RenderPlayer{
-    public info: Player;
-    public sprite: Phaser.Sprite;
-    public route: Array<Phaser.Point>;
-    public color: number;
-    public routeIndex: number;
-
-    constructor(info: Player, route: Array<Phaser.Point>, color: number) {
-        this.info = info;
-        this.route = route;
-        this.color = color;
-        this.routeIndex = 0;
     }
 }

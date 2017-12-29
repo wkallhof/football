@@ -1,13 +1,15 @@
 import * as Assets from '../assets';
 import { CameraUtil } from "../utilities/CameraUtil";
 import Team from "../models/Team";
-import Player from "../models/Player";
+import {Player} from "../models/player";
 import { PlayerPosition } from "../models/PlayerPosition";
 import Field from "../models/field";
 import MatchState from "../models/matchState";
 import { createDecipher } from 'crypto';
 import { States, StateManager } from "../utilities/stateManager";
 import { Play, PlayRoute } from '../models/play';
+import DumbMind from "../ai/dumbMind";
+import WrMind from "../ai/wrMind";
 
 /*
 * Creates a Demo down for development
@@ -119,7 +121,8 @@ export default class Game extends Phaser.State {
     */
     createDemoPlayers(players: number, jerseyStart: number, nameStart: string, position: PlayerPosition, team: Team) {
         for (let i = 0; i < players; i++){
-            let player = new Player(`${nameStart} ${i+1}`, i + jerseyStart, position);
+            let mind = position == PlayerPosition.WR ? new WrMind() : new DumbMind();
+            let player = new Player(`${nameStart} ${i+1}`, i + jerseyStart, position, mind);
             team.addPlayer(player);
         }
     }
