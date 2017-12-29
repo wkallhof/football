@@ -1,12 +1,14 @@
 import * as Assets from '../assets';
 import { CameraUtil } from "../utilities/CameraUtil";
 import MatchState from "../models/matchState";
+import PlayState from "../models/playState";
 import * as _ from "lodash";
 import { Player, RenderPlayer } from '../models/player';
 import { PlayRoute, Play } from '../models/play';
 import Team from "../models/Team";
 import Field from '../models/field';
 import { ThoughtRequest } from '../ai/mind';
+import { PlayerPosition } from '../models/playerPosition';
 
 export default class Down extends Phaser.State {
 
@@ -18,10 +20,11 @@ export default class Down extends Phaser.State {
     private backgroundTemplateSprite: Phaser.Sprite = null;
 
     private matchState: MatchState;
-    private beforeSnap: boolean = true;
 
     private defensePlayers: Array<RenderPlayer> = new Array<RenderPlayer>();
     private offensePlayers: Array<RenderPlayer> = new Array<RenderPlayer>();
+
+    private playState: PlayState;
 
     init(matchState: MatchState): void{
         this.matchState = matchState;
@@ -30,19 +33,19 @@ export default class Down extends Phaser.State {
 
     create(): void {
         this.cameraUtil = new CameraUtil(this.game);
+        this.setupWorld();
 
-        this.game.add.sprite(0,0, Assets.Images.ImagesField.getName());
-        this.game.world.setBounds(0,0,1260, 2500);
-        //	Enable p2 physics
-	    this.game.physics.startSystem(Phaser.Physics.P2JS);
-    
-        //  Make things a bit more bouncey
-        this.game.physics.p2.restitution = 0.8;
+        this.playState = new PlayState();
+        this.playState.isBeforeSnap = true;
+        this.playState.playerWithBall = _.find(this.offensePlayers, (player: RenderPlayer) => {
+            return player.info.position == PlayerPosition.QB;
+        });
+        console.log(this.playState.playerWithBall);
 
         var coords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
 
-        this.playerGroup = this.game.add.group(); 
-        this.player = this.getPlayerSprite(coords.x-300, coords.y, 0x00000);
+        this.playerGroup = this.game.add.group();
+        this.player = this.getPlayerSprite(coords.x - 300, coords.y, 0x00000);
 
         this.drawYardLine(this.matchState);
 
@@ -53,6 +56,16 @@ export default class Down extends Phaser.State {
         this.game.input.onTap.add(this.onTap, this);
         this.game.camera.follow(this.player, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
         this.player.body.onBeginContact.add(this.onPlayerHit, this);
+    }
+
+    private setupWorld() {
+        this.game.add.sprite(0, 0, Assets.Images.ImagesField.getName());
+        this.game.world.setBounds(0, 0, 1260, 2500);
+        //	Enable p2 physics
+        this.game.physics.startSystem(Phaser.Physics.P2JS);
+
+        //  Make things a bit more bouncey
+        this.game.physics.p2.restitution = 0.5;
     }
 
     drawYardLine(matchState: MatchState) {
@@ -75,12 +88,12 @@ export default class Down extends Phaser.State {
         let team = isOffense ? this.matchState.offenseTeam : this.matchState.defenseTeam;
 
         let ballCoords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
-        for (let i = 0; i < players.length; i++){
+        for (let i = 0; i < players.length; i++) {
             let player = players[i];
             let x = ballCoords.x;
             let y = ballCoords.y + (mod * offset) + (mod * i * 40);
 
-            let sprite = this.getPlayerSprite(x, y, team.color );
+            let sprite = this.getPlayerSprite(x, y, team.color);
             player.sprite = sprite;
         }
     }
@@ -90,14 +103,14 @@ export default class Down extends Phaser.State {
         this.defensePlayers = this.loadPlayerFromPlay(matchState.defenseTeam, matchState.defensePlay);
     }
 
-    loadPlayerFromPlay(team: Team, play: Play) : Array<RenderPlayer> {
+    loadPlayerFromPlay(team: Team, play: Play): Array<RenderPlayer> {
         let output = new Array<RenderPlayer>();
-        for (let i = 0; i < play.playRoutes.length; i++){
+        for (let i = 0; i < play.playRoutes.length; i++) {
             let route = play.playRoutes[i];
             // find the player if they haven't already been selected and match the position
-            var player = _.find(team.players, (player:Player) => {
+            var player = _.find(team.players, (player: Player) => {
                 return !_.some(this.offensePlayers, { "number": player.number, "position": player.position })
-                    && player.position == route.position;    
+                    && player.position == route.position;
             });
 
             if (player != null) {
@@ -108,20 +121,20 @@ export default class Down extends Phaser.State {
         return output;
     }
 
-    update(): void{
+    update(): void {
         this.managePlayerInput();
         this.executeThought(this.offensePlayers);
         this.executeThought(this.defensePlayers);
     }
 
     executeThought(players: Array<RenderPlayer>) {
-        for (let i = 0; i < players.length; i++){
+        for (let i = 0; i < players.length; i++) {
             let player = players[i];
-            player.info.mind.think(new ThoughtRequest(player, this.matchState, this.beforeSnap));
+            player.info.mind.think(new ThoughtRequest(player, this.matchState, this.playState));
         }
     }
 
-    onPlayerHit(body : Phaser.Physics.P2.Body, bodyB, shapeA, shapeB, equation) {
+    onPlayerHit(body: Phaser.Physics.P2.Body, bodyB, shapeA, shapeB, equation) {
         if (body == null || equation[0] == null) return;
 
         const velocity1 = new Phaser.Point(equation[0].bodyB.velocity[0], equation[0].bodyB.velocity[1]);
@@ -145,15 +158,15 @@ export default class Down extends Phaser.State {
         const modifier = shiftKey.isDown ? 2 : 1;
         
         if (space.justDown) {
-            if (!this.beforeSnap) {
+            if (!this.playState.isBeforeSnap) {
                 console.log("Reset!");
-                this.beforeSnap = true;
+                this.playState.isBeforeSnap = true;
                 this.cameraUtil.zoom(1);
             }
             else {
                 this.cameraUtil.zoom(0.75);
                 console.log("Hut hut! - ball snapped -");
-                this.beforeSnap = false;
+                this.playState.isBeforeSnap = false;
             }
         }
 
@@ -164,30 +177,25 @@ export default class Down extends Phaser.State {
             this.player.body.thrustRight(10000);
         }
 
-        if (this.cursors.left.isDown)
-        {
+        if (this.cursors.left.isDown) {
             this.player.body.rotateLeft(50 * modifier);
         }
-        else if (this.cursors.right.isDown)
-        {
+        else if (this.cursors.right.isDown) {
             this.player.body.rotateRight(50 * modifier);
         }
-        else
-        {
+        else {
             this.player.body.setZeroRotation();
         }
     
-        if (this.cursors.up.isDown)
-        {
+        if (this.cursors.up.isDown) {
             this.player.body.thrust(400 * modifier);
         }
-        else if (this.cursors.down.isDown)
-        {
+        else if (this.cursors.down.isDown) {
             this.player.body.reverse(200);
         }
     }
 
-    getPlayerSprite(x: number, y: number, color:number) : Phaser.Sprite {
+    getPlayerSprite(x: number, y: number, color: number): Phaser.Sprite {
         const graphics = this.game.make.graphics(); // adds to the world stage
         graphics.beginFill(color);
         graphics.lineStyle(2, 0xFFFFFF, 1);

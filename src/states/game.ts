@@ -2,7 +2,7 @@ import * as Assets from '../assets';
 import { CameraUtil } from "../utilities/CameraUtil";
 import Team from "../models/Team";
 import {Player} from "../models/player";
-import { PlayerPosition } from "../models/PlayerPosition";
+import { PlayerPosition } from "../models/playerPosition";
 import Field from "../models/field";
 import MatchState from "../models/matchState";
 import { createDecipher } from 'crypto';
@@ -10,6 +10,8 @@ import { States, StateManager } from "../utilities/stateManager";
 import { Play, PlayRoute } from '../models/play';
 import DumbMind from "../ai/dumbMind";
 import WrMind from "../ai/wrMind";
+import DlMind from "../ai/dlMind";
+import { Mind } from '../ai/mind';
 
 /*
 * Creates a Demo down for development
@@ -91,10 +93,10 @@ export default class Game extends Phaser.State {
 
     createDemoDefensePlay() {
         let play = new Play();
-        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(-30, -30), new Phaser.Point(0, 120)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, -30), new Phaser.Point(0, 120)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(30, -30), new Phaser.Point(0, 120)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(60, -30), new Phaser.Point(0, 120)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(-30, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(-60, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(30, -30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.DL, [new Phaser.Point(60, -30)]));
         return play;
     }
 
@@ -121,9 +123,17 @@ export default class Game extends Phaser.State {
     */
     createDemoPlayers(players: number, jerseyStart: number, nameStart: string, position: PlayerPosition, team: Team) {
         for (let i = 0; i < players; i++){
-            let mind = position == PlayerPosition.WR ? new WrMind() : new DumbMind();
+            let mind = this.getDemoMind(position);
             let player = new Player(`${nameStart} ${i+1}`, i + jerseyStart, position, mind);
             team.addPlayer(player);
+        }
+    }
+
+    getDemoMind(position: PlayerPosition) : Mind {
+        switch (position) {
+            case PlayerPosition.DL: return new DlMind();
+            case PlayerPosition.WR: return new WrMind();    
+            default: return new DumbMind();
         }
     }
 }

@@ -1,6 +1,7 @@
 import MatchState from "../models/matchState";
 import { Player, RenderPlayer } from "../models/Player";
 import * as Phaser from "phaser-ce";
+import PlayState from "../models/playState";
 
 export abstract class Mind {
     public abstract think(request: ThoughtRequest): void
@@ -17,7 +18,7 @@ export abstract class Mind {
         }
     }
 
-    private accelerateToPoint(object, point: Phaser.Point, speed: number) {
+    public accelerateToPoint(object, point: Phaser.Point, speed: number) {
         if (Math.abs(object.body.x - point.x) < 3 && Math.abs(object.body.y - point.y) < 3) {
             object.body.rotation = 0;
             return;
@@ -59,12 +60,12 @@ export abstract class Mind {
 export class ThoughtRequest {
     public player: RenderPlayer;
     public matchState: MatchState;
-    public beforeSnap: boolean;
+    public playState: PlayState;
 
-    constructor(player: RenderPlayer, matchState: MatchState, beforeSnap: boolean) {
+    constructor(player: RenderPlayer, matchState: MatchState, playState: PlayState) {
         this.player = player;
         this.matchState = matchState;
-        this.beforeSnap = beforeSnap;
+        this.playState = playState;
     }
 }
 
