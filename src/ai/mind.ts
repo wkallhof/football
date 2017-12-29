@@ -28,7 +28,7 @@ export abstract class Mind {
         object.body.force.y = Math.sin(angle) * speed;
     }
 
-    private rotateTowardsPoint(object, point: Phaser.Point): number {
+    public rotateTowardsPoint(object, point: Phaser.Point): number {
         
         const angle = Math.atan2(point.y - object.y, point.x -object.x);
         object.body.rotation = angle + Phaser.Math.degToRad(90);
