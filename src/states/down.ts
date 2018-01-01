@@ -60,7 +60,7 @@ export default class Down extends Phaser.State {
 
         this.cursors = this.game.input.keyboard.createCursorKeys();
         this.game.input.onTap.add(this.onTap, this);
-        this.game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+        this.cameraUtil.follow(this.playState.ball.sprite);
         this.player.sprite.body.onBeginContact.add(this.onPlayerHit, this);
     }
 
@@ -127,6 +127,7 @@ export default class Down extends Phaser.State {
     }
 
     update(): void {
+        this.cameraUtil.update();
         this.managePlayerInput();
         this.executeThought(this.offensePlayers);
         this.executeThought(this.defensePlayers);
@@ -164,27 +165,34 @@ export default class Down extends Phaser.State {
         console.log("Reset!");
         this.playState.isBeforeSnap = true;
         this.cameraUtil.zoom(1);
+        let qb = _.find(this.offensePlayers, (player: RenderPlayer) => {
+            return player.info.position == PlayerPosition.QB;
+        });
+        this.updatePlayerWithBall(qb);
     }
 
     throwBall(point: Phaser.Point) {
-        if (!this.playState.playerWithBall) return;
+        if (!this.playState.playerWithBall || this.playState.ballThrown) return;
 
         //TODO: Implement throw strength
         //TODO: Implement correct speed modifier;
 
-        let speedMod = 2.8;
+        let speedMod = 2.5;
         let ball = this.playState.ball;
 
         this.playState.playerWithBall.sprite.removeChild(ball.sprite);
         ball.sprite.kill();
         ball = this.playState.ball = new Ball(this.game, this.getBallSprite(this.playState.playerWithBall.location));
         ball.sprite.rotation = ObjectUtil.calculateSpriteRotationAngleToPoint(ball.sprite.position, point);
-
-        const distance = ObjectUtil.GetDistanceBetweenPoins(ball.sprite.position, point);
-        this.debugTextValue = `distance: ${distance}`;
+        this.cameraUtil.follow(ball.sprite);
+        const distance = ObjectUtil.GetDistanceBetweenPoints(ball.sprite.position, point);
+        
+        this.playState.ballThrown = true;
+        this.playState.ballTargetDestination = point;
 
         let newState = { x: point.x, y: point.y};
         let throwTween = this.game.add.tween(ball.sprite).to(newState, distance * speedMod);
+        throwTween.onComplete.add(this.onBallThrowFinish, this);
         throwTween.start();
 
         let scaleState = { x: 1.5, y: 1.5 };
@@ -194,13 +202,47 @@ export default class Down extends Phaser.State {
         let endTween = this.game.add.tween(ball.sprite.scale).to(endState, (distance * speedMod) / 2);
         startTween.chain(endTween);
         startTween.start();
-        //this.playState.playerWithBall = null;
+        this.playState.playerWithBall = null;
+    }
+
+    onBallThrowFinish() {
+        //TODO: Check if behind line for fumble
+        let allPlayers = _.union(this.offensePlayers, this.defensePlayers);
+
+        let player = _.chain(allPlayers).filter((player: RenderPlayer) => {
+            return ObjectUtil.GetDistanceBetweenPoints(player.location, this.playState.ball.getLocation()) < 30;
+        }).orderBy((player: RenderPlayer) => {
+            return ObjectUtil.GetDistanceBetweenPoints(player.location, this.playState.ball.getLocation());
+            }, ["asc"]).head().value();
+        
+        if (!player) {
+            this.resetDown();
+        }
+        else {
+            this.updatePlayerWithBall(player);
+        }
+        
+    }
+
+    updatePlayerWithBall(player: RenderPlayer) {
+        this.player.isUser = false;
+        this.player = player;
+        this.playState.ball.sprite.kill();
+        this.playState.ball = new Ball(this.game, this.getBallSprite(new Phaser.Point(0, 0)));
+        this.playState.playerWithBall = player;
+        this.playState.playerWithBall.isUser = true;
+        this.playState.ballThrown = false;
+        this.playState.ballTargetDestination = null;
+        this.playState.playerWithBall.sprite.addChild(this.playState.ball.sprite);
+        this.cameraUtil.follow(this.playState.ball.sprite);
     }
 
     managePlayerInput() {
         const shiftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.SHIFT);
-        const jukeLeft = this.game.input.keyboard.addKey(Phaser.Keyboard.A);
-        const jukeRight = this.game.input.keyboard.addKey(Phaser.Keyboard.D);
+        const upKey = this.game.input.keyboard.addKey(Phaser.Keyboard.W);
+        const downKey = this.game.input.keyboard.addKey(Phaser.Keyboard.S);
+        const leftKey = this.game.input.keyboard.addKey(Phaser.Keyboard.A);
+        const rightKey = this.game.input.keyboard.addKey(Phaser.Keyboard.D);
         const space = this.game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
         const modifier = shiftKey.isDown ? 2 : 1;
@@ -216,27 +258,27 @@ export default class Down extends Phaser.State {
             }
         }
 
-        if (jukeLeft.justDown) {
-            this.player.sprite.body.thrustLeft(5000);
-        }
-        if (jukeRight.justDown) {
-            this.player.sprite.body.thrustRight(5000);
-        }
+        // if (leftKey.justUp && leftKey.duration < 250) {
+        //     this.player.sprite.body.thrustLeft(5000);
+        // }
+        // if (rightKey.justUp && rightKey.duration < 250) {
+        //     this.player.sprite.body.thrustRight(5000);
+        // }
 
-        if (this.cursors.left.isDown) {
+        if (leftKey.isDown) {
             this.player.sprite.body.rotateLeft(50 * modifier);
         }
-        else if (this.cursors.right.isDown) {
+        else if (rightKey.isDown) {
             this.player.sprite.body.rotateRight(50 * modifier);
         }
         else {
             this.player.sprite.body.setZeroRotation();
         }
     
-        if (this.cursors.up.isDown) {
+        if (upKey.isDown) {
             this.player.sprite.body.thrust(300 * modifier);
         }
-        else if (this.cursors.down.isDown) {
+        else if (downKey.isDown) {
             this.player.sprite.body.reverse(200);
         }
     }

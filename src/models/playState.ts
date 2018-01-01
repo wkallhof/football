@@ -7,4 +7,6 @@ export default class PlayState{
     public playClock: number;
     public flagThrown: boolean;
     public isBeforeSnap: boolean;
+    public ballThrown: boolean;
+    public ballTargetDestination: Phaser.Point;
 }

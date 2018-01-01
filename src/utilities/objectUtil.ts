@@ -34,7 +34,7 @@ export default class ObjectUtil{
      * @param point1 First point to check distance from
      * @param point2 Second point to check distance to
      */
-    public static GetDistanceBetweenPoins(point1: Phaser.Point, point2: Phaser.Point): number {
+    public static GetDistanceBetweenPoints(point1: Phaser.Point, point2: Phaser.Point): number {
         if (!point1 || !point2) throw "Null point passed in";
 
         var a = point1.x - point2.x;
