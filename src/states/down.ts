@@ -47,9 +47,7 @@ export default class Down extends Phaser.State {
         var coords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
 
         this.playerGroup = this.game.add.group();
-        this.player = this.playState.playerWithBall;
-        this.player.isUser = true;
-
+        
         this.drawYardLine(this.matchState);
 
         this.startHudle(this.offensePlayers, true);
@@ -61,7 +59,8 @@ export default class Down extends Phaser.State {
         this.cursors = this.game.input.keyboard.createCursorKeys();
         this.game.input.onTap.add(this.onTap, this);
         this.cameraUtil.follow(this.playState.ball.sprite);
-        this.player.sprite.body.onBeginContact.add(this.onPlayerHit, this);
+
+        this.setUserControlledPlayer(this.playState.playerWithBall);
     }
 
     private setupWorld() {
@@ -86,6 +85,12 @@ export default class Down extends Phaser.State {
         this.game.add.sprite(0, coords.y, graphics.generateTexture());
     }
 
+    /**
+     * Responsible for rendering players for the down, starting
+     * in their huddle.
+     * @param players 
+     * @param isOffense 
+     */
     startHudle(players: Array<RenderPlayer>, isOffense: boolean) {
 
         let offset = 200;
@@ -168,7 +173,8 @@ export default class Down extends Phaser.State {
         let qb = _.find(this.offensePlayers, (player: RenderPlayer) => {
             return player.info.position == PlayerPosition.QB;
         });
-        this.updatePlayerWithBall(qb);
+        this.setPlayerWithBall(qb);
+        this.setUserControlledPlayer(qb);
     }
 
     throwBall(point: Phaser.Point) {
@@ -219,22 +225,30 @@ export default class Down extends Phaser.State {
             this.resetDown();
         }
         else {
-            this.updatePlayerWithBall(player);
+            this.setPlayerWithBall(player);
+            this.setUserControlledPlayer(player);
         }
         
     }
 
-    updatePlayerWithBall(player: RenderPlayer) {
-        this.player.isUser = false;
-        this.player = player;
+    setPlayerWithBall(player: RenderPlayer) {
         this.playState.ball.sprite.kill();
         this.playState.ball = new Ball(this.game, this.getBallSprite(new Phaser.Point(0, 0)));
         this.playState.playerWithBall = player;
-        this.playState.playerWithBall.isUser = true;
         this.playState.ballThrown = false;
         this.playState.ballTargetDestination = null;
         this.playState.playerWithBall.sprite.addChild(this.playState.ball.sprite);
         this.cameraUtil.follow(this.playState.ball.sprite);
+    }
+
+    setUserControlledPlayer(player: RenderPlayer) {
+        if (this.player) {
+            this.player.isUser = false;
+            this.player.sprite.body.onBeginContact.removeAll();
+        }
+        this.player = player;
+        this.player.isUser = true;
+        this.player.sprite.body.onBeginContact.add(this.onPlayerHit, this);
     }
 
     managePlayerInput() {
