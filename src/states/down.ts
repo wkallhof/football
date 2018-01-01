@@ -9,9 +9,12 @@ import Team from "../models/Team";
 import Field from '../models/field';
 import { ThoughtRequest } from '../ai/mind';
 import { PlayerPosition } from '../models/playerPosition';
+import Ball from "../models/ball";
+import ObjectUtil from '../utilities/objectUtil';
 
 export default class Down extends Phaser.State {
 
+    private debugTextValue: string;
     private cameraUtil: CameraUtil;
     private player: RenderPlayer;
 
@@ -52,6 +55,9 @@ export default class Down extends Phaser.State {
         this.startHudle(this.offensePlayers, true);
         this.startHudle(this.defensePlayers, false);
 
+        this.playState.ball = new Ball(this.game, this.getBallSprite(new Phaser.Point(0, 0)));
+        this.playState.playerWithBall.sprite.addChild(this.playState.ball.sprite);
+
         this.cursors = this.game.input.keyboard.createCursorKeys();
         this.game.input.onTap.add(this.onTap, this);
         this.game.camera.follow(this.player.sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
@@ -59,6 +65,7 @@ export default class Down extends Phaser.State {
     }
 
     private setupWorld() {
+
         this.game.add.sprite(0, 0, Assets.Images.ImagesField.getName());
         this.game.world.setBounds(0, 0, 1260, 2500);
         //	Enable p2 physics
@@ -80,8 +87,6 @@ export default class Down extends Phaser.State {
     }
 
     startHudle(players: Array<RenderPlayer>, isOffense: boolean) {
-
-        console.log("Starting huddle", players);
 
         let offset = 200;
         let mod = isOffense ? 1 : -1;
@@ -109,7 +114,7 @@ export default class Down extends Phaser.State {
             let route = play.playRoutes[i];
             // find the player if they haven't already been selected and match the position
             var player = _.find(team.players, (player: Player) => {
-                return !_.some(this.offensePlayers, { "number": player.number, "position": player.position })
+                return !_.some(this.offensePlayers, (rPlayer: RenderPlayer) => { return player.number == rPlayer.info.number && player.position == rPlayer.info.position})
                     && player.position == route.position;
             });
 
@@ -125,6 +130,10 @@ export default class Down extends Phaser.State {
         this.managePlayerInput();
         this.executeThought(this.offensePlayers);
         this.executeThought(this.defensePlayers);
+    }
+
+    render(): void{
+        this.game.debug.text( this.debugTextValue, 10, 10 );
     }
 
     executeThought(players: Array<RenderPlayer>) {
@@ -146,14 +155,46 @@ export default class Down extends Phaser.State {
     }
 
     onTap(pointer, doubleTap) {
-        console.log(pointer);
-        console.log(`${pointer.x + this.game.camera.x},${pointer.y + this.game.camera.y}`);
+        let clickXWorld = (pointer.x + this.game.camera.x) / this.game.camera.scale.x;
+        let clickYWorld = (pointer.y + this.game.camera.y) / this.game.camera.scale.y;
+        this.throwBall(new Phaser.Point(clickXWorld, clickYWorld));
     }
 
     resetDown() {
         console.log("Reset!");
         this.playState.isBeforeSnap = true;
         this.cameraUtil.zoom(1);
+    }
+
+    throwBall(point: Phaser.Point) {
+        if (!this.playState.playerWithBall) return;
+
+        //TODO: Implement throw strength
+        //TODO: Implement correct speed modifier;
+
+        let speedMod = 2.8;
+        let ball = this.playState.ball;
+
+        this.playState.playerWithBall.sprite.removeChild(ball.sprite);
+        ball.sprite.kill();
+        ball = this.playState.ball = new Ball(this.game, this.getBallSprite(this.playState.playerWithBall.location));
+        ball.sprite.rotation = ObjectUtil.calculateSpriteRotationAngleToPoint(ball.sprite.position, point);
+
+        const distance = ObjectUtil.GetDistanceBetweenPoins(ball.sprite.position, point);
+        this.debugTextValue = `distance: ${distance}`;
+
+        let newState = { x: point.x, y: point.y};
+        let throwTween = this.game.add.tween(ball.sprite).to(newState, distance * speedMod);
+        throwTween.start();
+
+        let scaleState = { x: 1.5, y: 1.5 };
+        let endState = { x: 1, y: 1 };
+        let startTween = this.game.add.tween(ball.sprite.scale).to(scaleState, (distance * speedMod) / 2);
+        startTween.start();
+        let endTween = this.game.add.tween(ball.sprite.scale).to(endState, (distance * speedMod) / 2);
+        startTween.chain(endTween);
+        startTween.start();
+        //this.playState.playerWithBall = null;
     }
 
     managePlayerInput() {
@@ -215,5 +256,15 @@ export default class Down extends Phaser.State {
         //  Modify a few body properties
         player.body.damping = 0.8;
         return player;
+    }
+
+    getBallSprite(point: Phaser.Point): Phaser.Sprite{
+        const graphics = this.game.make.graphics();
+        graphics.beginFill(0x996633);
+        graphics.drawEllipse(5, 7, 5, 7);
+        let sprite = this.game.add.sprite(point.x, point.y, graphics.generateTexture());
+        sprite.anchor.set(0.5);
+
+        return sprite;
     }
 }

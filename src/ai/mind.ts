@@ -2,47 +2,40 @@ import MatchState from "../models/matchState";
 import { Player, RenderPlayer } from "../models/Player";
 import * as Phaser from "phaser-ce";
 import PlayState from "../models/playState";
+import ObjectUtil from "../utilities/objectUtil";
 
 export abstract class Mind {
     public abstract think(request: ThoughtRequest): void
     
     public runRoute(player: RenderPlayer, matchState: MatchState, beforeSnap: boolean) {
         player.routeIndex = beforeSnap ? 0 : player.routeIndex;
-        let target = this.calculateTarget(player, matchState);
+        let location = this.calculateTarget(player, matchState);
 
-        if (!beforeSnap && this.atPoint(player.sprite, target) && player.routeIndex != player.route.length - 1) {
+        if (!beforeSnap && ObjectUtil.pointsAreCloseEnough(player.location, location, 3) && player.routeIndex != player.route.length - 1) {
                 player.routeIndex++;
         }
         else {
-            this.accelerateToPoint(player.sprite, target, 300);
+            this.runToLocation(player, location, 300);
         }
     }
 
-    public accelerateToPoint(object, point: Phaser.Point, speed: number) {
-        if (Math.abs(object.body.x - point.x) < 3 && Math.abs(object.body.y - point.y) < 3) {
-            object.body.rotation = 0;
+    public runToLocation(player: RenderPlayer, location: Phaser.Point, speed: number) {
+        if (ObjectUtil.pointsAreCloseEnough(player.location, location, 3)) {
+            player.sprite.body.rotation = 0;
             return;
         }
-        const angle = this.rotateTowardsPoint(object, point);
-        object.body.force.x = Math.cos(angle) * speed;    // accelerateToObject 
-        object.body.force.y = Math.sin(angle) * speed;
-    }
 
-    public rotateTowardsPoint(object, point: Phaser.Point): number {
-        
-        const angle = Math.atan2(point.y - object.y, point.x -object.x);
-        object.body.rotation = angle + Phaser.Math.degToRad(90);
-        return angle;
-    }
+        let angle = ObjectUtil.calculateRotationAngleToPoint(player.location, location);
 
-    private atPoint(player: Phaser.Sprite, point: Phaser.Point): boolean {
-        return Math.abs(player.x - point.x) < 3 && Math.abs(player.y - point.y) < 3;
+        player.sprite.body.rotation = angle + Phaser.Math.degToRad(90);
+        player.sprite.body.force.x = Math.cos(angle) * speed;    // accelerateToObject 
+        player.sprite.body.force.y = Math.sin(angle) * speed;
     }
 
     public finishedRoute(player: RenderPlayer, matchState: MatchState) {
         let target = this.calculateTarget(player, matchState);
 
-        return this.atPoint(player.sprite, target)
+        return ObjectUtil.pointsAreCloseEnough(player.location, target, 3)
             && player.routeIndex == player.route.length - 1;
     }
 

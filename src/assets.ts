@@ -8,10 +8,23 @@ export namespace Images {
     }
 }
 
+export namespace Data {
+    export class Teams{
+        static key: string = "teams";
+        static getPath(): string { return require('assets/data/teams.json'); }
+    }
+
+    export class Fields{
+        static key: string = "fields";
+        static getPath(): string { return require('assets/data/fields.json'); }
+    }
+}
+
 export class Loader {
     
     static loadAllAssets(game: Phaser.Game) {
         this.loadImages(game);
+        this.loadData(game);
     }
 
     static loadImages(game: Phaser.Game) {
@@ -24,5 +37,10 @@ export class Loader {
                 }
             }
         }
+    }
+
+    static loadData(game: Phaser.Game) {
+        game.load.json(Data.Fields.key, Data.Fields.getPath());
+        game.load.json(Data.Teams.key, Data.Teams.getPath());
     }
 }

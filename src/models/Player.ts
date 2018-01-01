@@ -1,6 +1,7 @@
 import * as Phaser from "phaser-ce";
 import { PlayerPosition } from "./playerPosition";
 import { Mind } from "../ai/mind";
+import ObjectUtil from "../utilities/objectUtil";
 
 export class Player {
     public name: string;
@@ -24,6 +25,7 @@ export class RenderPlayer{
     public color: number;
     public routeIndex: number;
     public isUser: boolean;
+    public get location(): Phaser.Point { return ObjectUtil.spriteToScreenPos(this.sprite); }
 
     constructor(info: Player, route: Array<Phaser.Point>, color: number) {
         this.info = info;

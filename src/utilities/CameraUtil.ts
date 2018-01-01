@@ -11,6 +11,6 @@ export class CameraUtil {
     zoom(zoomLevel: number) {
         //console.log(this.game.world.scale);
         //this.game.world.scale.set(zoomLevel);
-        this.game.add.tween(this.game.world.scale).to( { x: zoomLevel, y:zoomLevel }, 2000, "Linear", true);
+        this.game.add.tween(this.game.camera.scale).to( { x: zoomLevel, y:zoomLevel }, 2000, "Linear", true);
     }
 }
