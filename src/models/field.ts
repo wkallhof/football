@@ -70,6 +70,7 @@ export default class Field{
         const lineStyle = new DrawStyle(null, "#FFFFFF", 4);
         const textStyle = new DrawStyle("#FFFFFF", null, null, "48px serif");
         const endZoneStyle = new DrawStyle("#4B6D22", "#FFFFFF", 4);
+        const triangleStyle = new DrawStyle("#FFFFFF");
         
         // draw full field
         drawing.drawRect(new Phaser.Rectangle(0, 0, this.fullWidth, this.fullHeight), baseFieldStyle);
@@ -108,9 +109,25 @@ export default class Field{
         //draw yard line text
         for (let i = 10; i < 100; i += 10){
             let point = this.translateYardsToCoords(i);
-            let yardText = i.toString().split("").join(" ");
+            let displayNumber = i > 50 ? 100 - i : i;
+            let yardText = displayNumber.toString().split("").join(" ");
             drawing.drawText(this.fieldOfPlay.left + 90, point.y, yardText, textStyle, 90);
-            drawing.drawText(this.fieldOfPlay.right - 90, point.y, yardText , textStyle, 270);
+            drawing.drawText(this.fieldOfPlay.right - 90, point.y, yardText, textStyle, 270);
+            
+            // draw direction arrows
+            if (i < 50) {
+                let leftStart = new Phaser.Point(this.fieldOfPlay.left + 100, point.y - 35);
+                let rightStart = new Phaser.Point(this.fieldOfPlay.right - 100, point.y - 35);
+                drawing.drawTriangle(leftStart.x, leftStart.y, leftStart.x + 10, leftStart.y, leftStart.x + 5, leftStart.y - 10, triangleStyle);
+                drawing.drawTriangle(rightStart.x, rightStart.y, rightStart.x - 10, rightStart.y, rightStart.x - 5, rightStart.y - 10, triangleStyle);
+            }
+            else if (i > 50) {
+                let leftStart = new Phaser.Point(this.fieldOfPlay.left + 100, point.y + 35);
+                let rightStart = new Phaser.Point(this.fieldOfPlay.right - 100, point.y + 35);
+                drawing.drawTriangle(leftStart.x, leftStart.y, leftStart.x + 10, leftStart.y, leftStart.x + 5, leftStart.y + 10, triangleStyle);
+                drawing.drawTriangle(rightStart.x, rightStart.y, rightStart.x - 10, rightStart.y, rightStart.x - 5, rightStart.y + 10, triangleStyle);
+            }
+
         }
 
         drawing.drawRect(this.targetEndzone, endZoneStyle);

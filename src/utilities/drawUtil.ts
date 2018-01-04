@@ -80,7 +80,25 @@ export class BitDrawing{
         this.ctx.restore();
     }
 
+    public drawTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, style: DrawStyle) {
+        if (!style) throw ("Style required");
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
+        this.ctx.lineTo(x3, y3);
 
+        if (style.hasFill()) {
+            this.ctx.fillStyle = style.fillColor;
+            this.ctx.fill();
+        }
+
+        if (style.hasLine()) {
+            this.ctx.strokeStyle = style.lineColor;
+            this.ctx.lineWidth = style.lineWidth;
+            this.ctx.closePath();
+            this.ctx.stroke;
+        }
+    }
 }
 
 export class DrawStyle {
