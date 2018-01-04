@@ -1,4 +1,5 @@
 import * as Phaser from "phaser-ce";
+import { DrawUtil, DrawStyle } from "../utilities/drawUtil";
 
 export default class Field{
 
@@ -61,80 +62,60 @@ export default class Field{
     }
 
     public getFieldTexture(game: Phaser.Game): Phaser.BitmapData {
-        const data = game.add.bitmapData(this.fullWidth, this.fullHeight, "field", true);
-        const ctx = data.ctx; // adds to the world stage
-        // set fill to green
-        ctx.fillStyle = "#69982F";
+        
+        const drawUtil = new DrawUtil(game);
+        const drawing = drawUtil.startNewBitmap(this.fullWidth, this.fullHeight, "field");
+
+        const baseFieldStyle = new DrawStyle("#69982F");
+        const lineStyle = new DrawStyle(null, "#FFFFFF", 4);
+        const textStyle = new DrawStyle("#FFFFFF", null, null, "48px serif");
+        const endZoneStyle = new DrawStyle("#4B6D22", "#FFFFFF", 4);
         
         // draw full field
-        ctx.fillRect(0, 0, this.fullWidth, this.fullHeight);
-
-        // set lines
-        ctx.font = '48px serif';
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = "#FFFFFF";
+        drawing.drawRect(new Phaser.Rectangle(0, 0, this.fullWidth, this.fullHeight), baseFieldStyle);
 
         // draw field
-        this.drawRectFromRect(ctx, this.fieldRect);
+        drawing.drawRect(this.fieldRect, lineStyle);
 
         //draw line every yard
         for (let i = 0; i < 100; i++){
             let point = this.translateYardsToCoords(i);
-            ctx.moveTo(this.fieldOfPlay.x, point.y);
-            ctx.lineTo(this.fieldOfPlay.x + 60, point.y);
-            ctx.moveTo(this.fieldOfPlay.right, point.y);
-            ctx.lineTo(this.fieldOfPlay.right - 60, point.y);
+
+            // left
+            drawing.drawLine(this.fieldOfPlay.x, point.y, this.fieldOfPlay.x + 60, point.y, lineStyle);
+
+            //right
+            drawing.drawLine(this.fieldOfPlay.right, point.y, this.fieldOfPlay.right - 60, point.y, lineStyle);
         }
 
         // draw center hash marks
         for (let i = 0; i < 100; i++){
             let point = this.translateYardsToCoords(i);
-            ctx.moveTo(this.fieldOfPlay.centerX - 120, point.y);
-            ctx.lineTo(this.fieldOfPlay.centerX - 80, point.y);
-            ctx.moveTo(this.fieldOfPlay.centerX + 120, point.y);
-            ctx.lineTo(this.fieldOfPlay.centerX + 80, point.y);
+
+            // left
+            drawing.drawLine(this.fieldOfPlay.centerX - 120, point.y, this.fieldOfPlay.centerX - 80, point.y, lineStyle);
+
+            //right
+            drawing.drawLine(this.fieldOfPlay.centerX + 120, point.y, this.fieldOfPlay.centerX + 80, point.y, lineStyle);
         }
 
         //draw full yard line every 5
         for (let i = 0; i < 100; i += 5){
             let point = this.translateYardsToCoords(i);
-            ctx.moveTo(this.fieldOfPlay.x, point.y);
-            ctx.lineTo(this.fieldOfPlay.topRight.x, point.y);
+            drawing.drawLine(this.fieldOfPlay.x, point.y, this.fieldOfPlay.topRight.x, point.y, lineStyle);
         }
 
         //draw yard line text
         for (let i = 10; i < 100; i += 10){
             let point = this.translateYardsToCoords(i);
-            this.drawYardNumbers(ctx, this.fieldOfPlay.left + 90, point.y, i, 90);
-            this.drawYardNumbers(ctx, this.fieldOfPlay.right - 90, point.y, i, 270);
+            let yardText = i.toString().split("").join(" ");
+            drawing.drawText(this.fieldOfPlay.left + 90, point.y, yardText, textStyle, 90);
+            drawing.drawText(this.fieldOfPlay.right - 90, point.y, yardText , textStyle, 270);
         }
 
-        ctx.fill();
+        drawing.drawRect(this.targetEndzone, endZoneStyle);
+        drawing.drawRect(this.ownEndzone, endZoneStyle);
 
-        ctx.fillStyle = "#4b6d22";
-        //drawEndzones
-        this.fillRectFromRect(ctx, this.targetEndzone);
-        this.fillRectFromRect(ctx, this.ownEndzone);
-        
-        ctx.fill();
-        ctx.stroke();
-        return data;
-    }
-
-    private drawRectFromRect(ctx: CanvasRenderingContext2D, rect: Phaser.Rectangle) {
-        ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-    }
-
-    private fillRectFromRect(ctx: CanvasRenderingContext2D, rect: Phaser.Rectangle) {
-        ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
-    }
-
-    private drawYardNumbers(ctx: CanvasRenderingContext2D, x: number, y: number, yard: number, degrees: number) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate( degrees * Math.PI / 180 );
-        ctx.textAlign = "center";
-        ctx.strokeText(yard.toString().split("").join(" "), 0,0);
-        ctx.restore();
+        return drawing.data;
     }
 }
