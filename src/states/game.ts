@@ -22,7 +22,8 @@ export default class Game extends Phaser.State {
         let demoTeam1 = this.createDemoTeam("Team 1", 0x0066ff);
         let demoTeam2 = this.createDemoTeam("Team 2", 0x999966);
         let demoField = new Field();
-
+        demoField.init();
+        
         let matchState = new MatchState();
         matchState.offenseTeam = demoTeam1;
         matchState.defenseTeam = demoTeam2;

@@ -17,6 +17,7 @@ export default class Down extends Phaser.State {
     private debugTextValue: string;
     private cameraUtil: CameraUtil;
     private player: RenderPlayer;
+    private playerSelectedIndicator: Phaser.Sprite;
 
     private cursors: Phaser.CursorKeys;
     private playerGroup: Phaser.Group;
@@ -60,13 +61,16 @@ export default class Down extends Phaser.State {
         this.game.input.onTap.add(this.onTap, this);
         this.cameraUtil.follow(this.playState.ball.sprite);
 
+        this.playerSelectedIndicator = this.getPlayerSelectedIndicator();
+
         this.setUserControlledPlayer(this.playState.playerWithBall);
     }
 
     private setupWorld() {
 
-        this.game.add.sprite(0, 0, Assets.Images.ImagesField.getName());
-        this.game.world.setBounds(0, 0, 1260, 2500);
+        let fieldTexture = this.matchState.field.getFieldTexture(this.game);
+        this.game.add.sprite(0, 0, fieldTexture);
+        this.game.world.setBounds(0, 0, fieldTexture.width, fieldTexture.height);
         //	Enable p2 physics
         this.game.physics.startSystem(Phaser.Physics.P2JS);
 
@@ -164,6 +168,9 @@ export default class Down extends Phaser.State {
         let clickXWorld = (pointer.x + this.game.camera.x) / this.game.camera.scale.x;
         let clickYWorld = (pointer.y + this.game.camera.y) / this.game.camera.scale.y;
         this.throwBall(new Phaser.Point(clickXWorld, clickYWorld));
+        //console.log(`${clickXWorld},${clickYWorld}`);
+        //console.log(this.matchState.field.translateToYards(clickYWorld));
+        console.log(this.matchState.field.getDebugInfo(new Phaser.Point(clickXWorld, clickYWorld)));
     }
 
     resetDown() {
@@ -245,9 +252,11 @@ export default class Down extends Phaser.State {
         if (this.player) {
             this.player.isUser = false;
             this.player.sprite.body.onBeginContact.removeAll();
+            //this.player.sprite.removeChild(this.playerSelectedIndicator);
         }
         this.player = player;
         this.player.isUser = true;
+        //this.player.sprite.addChild(this.playerSelectedIndicator);
         this.player.sprite.body.onBeginContact.add(this.onPlayerHit, this);
     }
 
@@ -311,7 +320,18 @@ export default class Down extends Phaser.State {
 
         //  Modify a few body properties
         player.body.damping = 0.8;
+
         return player;
+    }
+
+    getPlayerSelectedIndicator(): Phaser.Sprite {
+        const graphics = this.game.make.graphics(); // adds to the world stage
+        graphics.beginFill(0xCCFF66);
+        graphics.drawCircle(20, 20, 40);
+        graphics.endFill();
+        let sprite = this.game.add.sprite(0, 0, graphics.generateTexture());
+        sprite.anchor.set(0.5);
+        return sprite;
     }
 
     getBallSprite(point: Phaser.Point): Phaser.Sprite{
