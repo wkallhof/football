@@ -6,6 +6,7 @@ import Game from '../states/game';
 import Title from "../states/title";
 import Settings from "../states/settings";
 import Down from "../states/down";
+import SelectPlay from "../states/selectPlay";
 
 export class States {
     static BOOT : string = "boot";
@@ -14,6 +15,7 @@ export class States {
     static SETTINGS: string = "settings";
     static TITLE: string = "title";
     static DOWN: string = "down";
+    static SELECT_PLAY: string = "selectPlay";
 };
 
 export class StateManager {
@@ -25,10 +27,10 @@ export class StateManager {
         game.state.add(States.SETTINGS, Settings);
         game.state.add(States.GAME, Game);
         game.state.add(States.DOWN, Down);
+        game.state.add(States.SELECT_PLAY, SelectPlay);
     }
 
     public static start(state: string, game: Phaser.Game, data?: any) {
-
         game.state.start(state, true, false, data);
     }
 }

@@ -10,7 +10,7 @@ export default class DlMind extends DumbMind {
         let target = request.playState.ball;
 
         if (!request.playState.isBeforeSnap && target) {
-            this.runToLocation(thisPlayer, target.getLocation(), 200);
+            this.runToLocation(thisPlayer, target.getLocation(), 300);
         }
         else {
             super.think(request);

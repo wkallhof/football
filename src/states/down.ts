@@ -11,6 +11,7 @@ import { ThoughtRequest } from '../ai/mind';
 import { PlayerPosition } from '../models/playerPosition';
 import Ball from "../models/ball";
 import ObjectUtil from '../utilities/objectUtil';
+import { StateManager, States } from '../utilities/stateManager';
 
 export default class Down extends Phaser.State {
 
@@ -44,8 +45,6 @@ export default class Down extends Phaser.State {
         this.playState.playerWithBall = _.find(this.offensePlayers, (player: RenderPlayer) => {
             return player.info.position == PlayerPosition.QB;
         });
-
-        var coords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
 
         this.playerGroup = this.game.add.group();
         
@@ -97,15 +96,15 @@ export default class Down extends Phaser.State {
      */
     startHudle(players: Array<RenderPlayer>, isOffense: boolean) {
 
-        let offset = 200;
+        let offset = 150;
         let mod = isOffense ? 1 : -1;
         let team = isOffense ? this.matchState.offenseTeam : this.matchState.defenseTeam;
 
         let ballCoords = this.matchState.field.translateYardsToCoords(this.matchState.fieldPosition);
         for (let i = 0; i < players.length; i++) {
             let player = players[i];
-            let x = ballCoords.x;
-            let y = ballCoords.y + (mod * offset) + (mod * i * 40);
+            let x = ballCoords.x - 200 + (40 * i);
+            let y = ballCoords.y + (offset * mod);
 
             let sprite = this.getPlayerSprite(x, y, team.color);
             player.sprite = sprite;
@@ -136,6 +135,20 @@ export default class Down extends Phaser.State {
     }
 
     update(): void {
+        if (this.playState.playOver) return;
+    
+        //touchdown
+        if (this.matchState.field.inTargetEndzone(this.playState.ball.getLocation())) {
+            this.handleTouchdown();
+            return;
+        }
+
+        // out of bounds
+        if (this.playState.playerWithBall && this.matchState.field.isOutOfBounds(this.playState.playerWithBall.location)) {
+            this.handleOutOfBounds();
+            return;
+        }
+
         this.cameraUtil.update();
         this.managePlayerInput();
         this.executeThought(this.offensePlayers);
@@ -144,6 +157,12 @@ export default class Down extends Phaser.State {
 
     render(): void{
         this.game.debug.text( this.debugTextValue, 10, 10 );
+    }
+
+    triggerNextState(seconds: number) {
+        this.game.time.events.add(seconds * Phaser.Timer.SECOND, () => {
+            StateManager.start(States.SELECT_PLAY, this.game, this.matchState);
+        }, this);
     }
 
     executeThought(players: Array<RenderPlayer>) {
@@ -162,15 +181,47 @@ export default class Down extends Phaser.State {
         let force = Phaser.Point.distance(velocity1, velocity2) / 2000;
         
         this.game.camera.shake(force, 200);
+
+        let playerHit = this.getPlayerFromBody(body);
+        if (!playerHit) return;
+
+        let playerTackled = !this.playerIsOnOffense(playerHit);
+        if (playerTackled) {
+            this.handleTackle();
+        }
+    }
+
+    handleTackle() {
+        console.log("tackled!");
+        this.playState.playOver = true;
+        this.matchState.fieldPosition = this.matchState.field.translateToYards(this.playState.ball.getLocation().y);
+        this.triggerNextState(3);
+    }
+
+    handleMissedPass() {
+        console.log("Miss!");
+        this.playState.playOver = true;
+        this.triggerNextState(3);
+    }
+
+    handleTouchdown() {
+        console.log("Touchdown!!");
+        this.playState.playOver = true;
+        this.matchState.fieldPosition = 90;
+        this.triggerNextState(3);
+    }
+
+    handleOutOfBounds() {
+        console.log("Out of bounds!");
+        this.playState.playOver = true;
+        this.matchState.fieldPosition = this.matchState.field.translateToYards(this.playState.ball.getLocation().y);
+        this.triggerNextState(3);
     }
 
     onTap(pointer, doubleTap) {
         let clickXWorld = (pointer.x + this.game.camera.x) / this.game.camera.scale.x;
         let clickYWorld = (pointer.y + this.game.camera.y) / this.game.camera.scale.y;
         this.throwBall(new Phaser.Point(clickXWorld, clickYWorld));
-        //console.log(`${clickXWorld},${clickYWorld}`);
-        //console.log(this.matchState.field.translateToYards(clickYWorld));
-        console.log(this.matchState.field.getDebugInfo(new Phaser.Point(clickXWorld, clickYWorld)));
     }
 
     resetDown() {
@@ -229,7 +280,7 @@ export default class Down extends Phaser.State {
             }, ["asc"]).head().value();
         
         if (!player) {
-            this.resetDown();
+            this.handleMissedPass();
         }
         else {
             this.setPlayerWithBall(player);
@@ -251,7 +302,10 @@ export default class Down extends Phaser.State {
     setUserControlledPlayer(player: RenderPlayer) {
         if (this.player) {
             this.player.isUser = false;
-            this.player.sprite.body.onBeginContact.removeAll();
+            if (this.player.sprite.body) {
+                this.player.sprite.body.onBeginContact.removeAll();
+            }
+            
             //this.player.sprite.removeChild(this.playerSelectedIndicator);
         }
         this.player = player;
@@ -342,5 +396,16 @@ export default class Down extends Phaser.State {
         sprite.anchor.set(0.5);
 
         return sprite;
+    }
+
+    getPlayerFromBody(body: Phaser.Physics.P2.Body) : RenderPlayer {
+        let allPlayers = _.union(this.offensePlayers, this.defensePlayers);
+        return _.find(allPlayers, (player: RenderPlayer) => {
+            return player.sprite.body === body;
+        });
+    }
+
+    playerIsOnOffense(player: RenderPlayer) {
+        return _.indexOf(this.offensePlayers, player) > -1;
     }
 }

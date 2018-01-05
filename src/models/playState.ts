@@ -9,4 +9,5 @@ export default class PlayState{
     public isBeforeSnap: boolean;
     public ballThrown: boolean;
     public ballTargetDestination: Phaser.Point;
+    public playOver: boolean;
 }

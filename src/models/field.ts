@@ -84,10 +84,10 @@ export default class Field{
             let point = this.translateYardsToCoords(i);
 
             // left
-            drawing.drawLine(this.fieldOfPlay.x, point.y, this.fieldOfPlay.x + 60, point.y, lineStyle);
+            drawing.drawLine(this.fieldOfPlay.x, point.y, this.fieldOfPlay.x + 40, point.y, lineStyle);
 
             //right
-            drawing.drawLine(this.fieldOfPlay.right, point.y, this.fieldOfPlay.right - 60, point.y, lineStyle);
+            drawing.drawLine(this.fieldOfPlay.right, point.y, this.fieldOfPlay.right - 40, point.y, lineStyle);
         }
 
         // draw center hash marks
