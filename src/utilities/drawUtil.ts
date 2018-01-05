@@ -99,6 +99,13 @@ export class BitDrawing{
             this.ctx.stroke;
         }
     }
+
+    public setPixelAlpha(x: number, y: number, alpha: number) {
+        let rgba = this.data.getPixel(x, y);
+        if (!rgba) return;
+        rgba.a = alpha;
+        this.data.setPixel32(x, y, rgba.r, rgba.g, rgba.b, rgba.a);
+    }
 }
 
 export class DrawStyle {

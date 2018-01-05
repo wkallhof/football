@@ -1,5 +1,6 @@
 import * as Phaser from "phaser-ce";
 import { DrawUtil, DrawStyle } from "../utilities/drawUtil";
+import Noise from "../utilities/noise";
 
 export default class Field{
 
@@ -106,7 +107,7 @@ export default class Field{
             drawing.drawLine(this.fieldOfPlay.x, point.y, this.fieldOfPlay.topRight.x, point.y, lineStyle);
         }
 
-        //draw yard line text
+        //draw yard line text and arrows
         for (let i = 10; i < 100; i += 10){
             let point = this.translateYardsToCoords(i);
             let displayNumber = i > 50 ? 100 - i : i;
@@ -127,7 +128,6 @@ export default class Field{
                 drawing.drawTriangle(leftStart.x, leftStart.y, leftStart.x + 10, leftStart.y, leftStart.x + 5, leftStart.y + 10, triangleStyle);
                 drawing.drawTriangle(rightStart.x, rightStart.y, rightStart.x - 10, rightStart.y, rightStart.x - 5, rightStart.y + 10, triangleStyle);
             }
-
         }
 
         drawing.drawRect(this.targetEndzone, endZoneStyle);
