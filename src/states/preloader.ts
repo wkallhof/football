@@ -17,6 +17,6 @@ export default class Preloader extends Phaser.State {
     
     private loadGame(): void {
         //StateManager.start(States.TITLE, this.game);
-        StateManager.start(States.GAME, this.game);
+        StateManager.start(States.TITLE, this.game);
     }
 }

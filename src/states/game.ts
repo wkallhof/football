@@ -23,7 +23,7 @@ export default class Game extends Phaser.State {
         let demoTeam2 = this.createDemoTeam("Team 2", 0x999966);
         let demoField = new Field();
         demoField.init();
-        
+
         let matchState = new MatchState();
         matchState.offenseTeam = demoTeam1;
         matchState.defenseTeam = demoTeam2;
@@ -42,49 +42,49 @@ export default class Game extends Phaser.State {
         let play = new Play();
 
         //center
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, 30)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(0, 20)]));
 
         //left OL
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-30, 30), new Phaser.Point(-30, 40)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, 30), new Phaser.Point(-60, 60)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-30, 20), new Phaser.Point(-30, 40)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(-60, 20), new Phaser.Point(-60, 60)]));
 
         //right OL
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point( 30, 30), new Phaser.Point(30, 40)]));
-        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(60, 30), new Phaser.Point(60, 60)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point( 30, 20), new Phaser.Point(30, 40)]));
+        play.addPlayRoute(new PlayRoute(PlayerPosition.OL, [new Phaser.Point(60, 20), new Phaser.Point(60, 60)]));
         
         //TE
-        play.addPlayRoute(new PlayRoute(PlayerPosition.TE, [new Phaser.Point(100, 30), new Phaser.Point(100, -100)]))
+        play.addPlayRoute(new PlayRoute(PlayerPosition.TE, [new Phaser.Point(100, 20), new Phaser.Point(100, -100)]))
 
         //QB
         play.addPlayRoute(new PlayRoute(PlayerPosition.QB,
-            [new Phaser.Point(0, 60),
+            [new Phaser.Point(0, 40),
             new Phaser.Point(0,120)]
         ));
 
         //RB ->
         play.addPlayRoute(new PlayRoute(PlayerPosition.RB, [
-            new Phaser.Point(20, 100),
+            new Phaser.Point(20, 90),
             new Phaser.Point(130, 100),
             new Phaser.Point(150, -220)
         ]));
 
         //<-
         play.addPlayRoute(new PlayRoute(PlayerPosition.RB, [
-            new Phaser.Point(0, 130),
+            new Phaser.Point(0, 120),
             new Phaser.Point(-100, 90),
             new Phaser.Point(-100, -100)
         ]));
 
         //WR - L
         play.addPlayRoute(new PlayRoute(PlayerPosition.WR, [
-            new Phaser.Point(-250, 30),
+            new Phaser.Point(-250, 20),
             new Phaser.Point(-250, -100),
             new Phaser.Point(400, -200)
         ]));
 
         //WR - R
         play.addPlayRoute(new PlayRoute(PlayerPosition.WR, [
-            new Phaser.Point(250, 30),
+            new Phaser.Point(250, 20),
             new Phaser.Point(250, -70),
             new Phaser.Point(-400, -200)
         ]));

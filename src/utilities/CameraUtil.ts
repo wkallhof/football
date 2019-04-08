@@ -22,6 +22,12 @@ export class CameraUtil {
         this.game.camera.follow(sprite, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
     }
 
+    public getCurrentCenter(): Phaser.Point {
+        let x = (this.game.camera.x + (this.game.camera.width / 2)) / this.game.camera.scale.x;
+        let y = (this.game.camera.y + (this.game.camera.height / 2)) / this.game.camera.scale.y;
+        return new Phaser.Point(x, y);
+    }
+
     public update() {
         //console.log(`${this.target.world.x}, ${this.target.world.y}`);
         //this.game.camera.focusOnXY(this.target.position.x, this.target.position.y + this.yOffset);

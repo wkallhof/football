@@ -38,6 +38,7 @@ export default class Down extends Phaser.State {
 
     create(): void {
         this.cameraUtil = new CameraUtil(this.game);
+        this.cameraUtil.zoom(1);
         this.setupWorld();
 
         this.playState = new PlayState();
@@ -63,6 +64,7 @@ export default class Down extends Phaser.State {
         this.playerSelectedIndicator = this.getPlayerSelectedIndicator();
 
         this.setUserControlledPlayer(this.playState.playerWithBall);
+        this.logState();
     }
 
     private setupWorld() {
@@ -86,6 +88,19 @@ export default class Down extends Phaser.State {
         graphics.moveTo(0, coords.y);
         graphics.lineTo(1260, coords.y);
         this.game.add.sprite(0, coords.y, graphics.generateTexture());
+    }
+
+    drawLargeText(text: string, intensity: number) {
+        var style = { font: "60px Arial", fill: "#ffffff", align: "center" };
+        let cameraCenter = this.cameraUtil.getCurrentCenter();
+        var textObj = this.game.add.text(this.game.camera.x + this.game.camera.width, cameraCenter.y, text, style);
+        textObj.anchor.set(0.5);
+        textObj.stroke = "#000000";
+        textObj.strokeThickness = 4;
+        //  Apply the shadow to the Stroke only
+        textObj.setShadow(5, 5, 'rgba(0,0,0,0.5)', 15, true, false);
+        this.game.add.tween(textObj).to({ x: cameraCenter.x, y: cameraCenter.y }, 2000, Phaser.Easing.Cubic.Out, true);
+        this.game.camera.shake(0.005, 1200);
     }
 
     /**
@@ -182,6 +197,9 @@ export default class Down extends Phaser.State {
         
         this.game.camera.shake(force, 200);
 
+        // no need to check tackle of play over or ball in the air
+        if (this.playState.playOver || this.playState.ballThrown) return;
+
         let playerHit = this.getPlayerFromBody(body);
         if (!playerHit) return;
 
@@ -191,30 +209,66 @@ export default class Down extends Phaser.State {
         }
     }
 
+    logState() {
+        console.log(`Quarter: ${this.matchState.quarter}, Down: ${this.matchState.currentDown}`);
+    }
+
     handleTackle() {
         console.log("tackled!");
-        this.playState.playOver = true;
+        this.handlePlayOver();
         this.matchState.fieldPosition = this.matchState.field.translateToYards(this.playState.ball.getLocation().y);
+        this.matchState.currentDown++;
+        if (this.matchState.currentDown > 4) {
+            this.matchState.currentDown = 1;
+            this.handleTurnoverOnDowns();
+        }
         this.triggerNextState(3);
     }
 
     handleMissedPass() {
         console.log("Miss!");
         this.playState.playOver = true;
+        this.matchState.currentDown++;
+        if (this.matchState.currentDown > 4) {
+            this.matchState.currentDown = 1;
+            this.handleTurnoverOnDowns();
+        }
         this.triggerNextState(3);
     }
 
     handleTouchdown() {
         console.log("Touchdown!!");
-        this.playState.playOver = true;
+        this.drawLargeText("TOUCHDOWN", 10);
+        this.handlePlayOver();
         this.matchState.fieldPosition = 90;
+        this.matchState.currentDown = 1;
         this.triggerNextState(3);
     }
 
     handleOutOfBounds() {
         console.log("Out of bounds!");
-        this.playState.playOver = true;
+        this.handlePlayOver();
         this.matchState.fieldPosition = this.matchState.field.translateToYards(this.playState.ball.getLocation().y);
+        this.triggerNextState(3);
+    }
+
+    handlePlayOver() {
+        let newLocation = this.matchState.field.translateToYards(this.playState.ball.getLocation().y);
+        this.playState.playOver = true;
+        console.log(`Gain of ${Math.round(this.matchState.fieldPosition - newLocation)} yards`);
+    }
+
+    handleSafety() {
+        console.log("Safety!");
+        this.playState.playOver = true;
+        this.matchState.fieldPosition = 90;
+        this.triggerNextState(3);
+    }
+
+    handleTurnoverOnDowns() {
+        console.log("Turnover on Downs!");
+        this.playState.playOver = true;
+        this.matchState.fieldPosition = 90;
         this.triggerNextState(3);
     }
 
@@ -236,7 +290,7 @@ export default class Down extends Phaser.State {
     }
 
     throwBall(point: Phaser.Point) {
-        if (!this.playState.playerWithBall || this.playState.ballThrown) return;
+        if (this.playState.playOver || !this.playState.playerWithBall || this.playState.ballThrown) return;
 
         //TODO: Implement throw strength
         //TODO: Implement correct speed modifier;
